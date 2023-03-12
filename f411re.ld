@@ -1,6 +1,6 @@
-_estack = 0x20001000;
+_estack = 0x20010000;
 
-ENTRY(reset_handler)
+ENTRY(reset_irq_handler)
 
 MEMORY
 {
@@ -8,7 +8,14 @@ MEMORY
     RAM ( rxw )       : ORIGIN = 0x20000000, LENGTH = 128K
 }
 
-SECTIONS{
+SECTIONS
+{
+	.vtable :
+	{ 
+		. = ALIGN(4);
+		KEEP (*(.vtable))
+		. = ALIGN(4);
+	} > FLASH
 	.text : { *(.text*) } > FLASH
     .bss : { *(.bss*) } > FLASH
 }
