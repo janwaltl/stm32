@@ -1,4 +1,9 @@
-CPPFLAGS = -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -march=armv7e-m --target=arm-none-eabi  
+MCPU=cortex-m4
+MFPU=fpv4-sp-d16
+ARCH=armv7e-m
+FLASH_ADDR=0x08000000
+
+CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) --target=arm-none-eabi  
 CPPFLAGS += -Wall -Wextra -Werror -Wpedantic -Wconversion -nostdlib
 CPPFLAGS += -g3 -fpic
 
@@ -12,7 +17,7 @@ TARGET = a
 ELF_TARGET = $(BUILD_DIR)/$(TARGET).elf
 BIN_TARGET = $(BUILD_DIR)/$(TARGET).bin
 
-.PHONY: all clean
+.PHONY: all clean flash
 
 all: $(BIN_TARGET)
 
@@ -48,3 +53,6 @@ $(BIN_TARGET): $(ELF_TARGET)
 
 clean:
 	rm -r $(BUILD_DIR)
+
+flash: $(BIN_TARGET)
+	st-flash write $(BIN_TARGET) $(FLASH_ADDR)
