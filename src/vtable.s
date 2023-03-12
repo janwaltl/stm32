@@ -7,6 +7,7 @@
 .global reset_irq_handler
 
 // Vector table.
+.section .vtable, "a", %progbits
 .type vtable, %object
 vtable:
     .word _estack 					// Initial stack pointer
@@ -28,8 +29,7 @@ vtable:
 	. = 0x400 						// IRQs
 .size vtable, .-vtable
 
-.weak systick_irq_handler
-.thumb_set systick_irq_handler, default_irq_handler
+.section .text, "ax", %progbits
 
 // Default interruprt handler.
 .thumb_func
@@ -50,11 +50,9 @@ reset_irq_handler:
 	LDR  r0, =_estack
 	MOV  sp, r0
 
-	// Set some dummy values. When we see these values
-	// in our debugger, we'll know that our program
-	// is loaded on the chip and working.
-	LDR  r7, =0xDEADBEEF
-	MOVS r0, #0
 	B main
 .size reset_irq_handler, .-reset_irq_handler
 
+
+.weak systick_irq_handler
+.thumb_set systick_irq_handler, default_irq_handler

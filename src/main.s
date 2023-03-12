@@ -2,6 +2,7 @@
 .thumb
 .eabi_attribute Tag_ABI_align_preserved, 1
 
+.section .text, "ax", %progbits
 // Globally exported symbols
 .global main
 

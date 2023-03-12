@@ -16,6 +16,15 @@ SECTIONS
 		KEEP (*(.vtable))
 		. = ALIGN(4);
 	} > FLASH
-	.text : { *(.text*) } > FLASH
-    .bss : { *(.bss*) } > FLASH
+	.text : 
+	{ 
+		. = ALIGN(4);
+		*(.text) 
+		*(.text*) 
+		. = ALIGN(4);
+	} > FLASH
+    .bss : 
+	{ 
+		*(.bss*) 
+	} > FLASH
 }
