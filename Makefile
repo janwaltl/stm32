@@ -8,12 +8,13 @@ CFLAGS = -std=c11
 AFLAGS =
 
 BUILD_DIR = build
-TARGET = a.out
-OUT_TARGET = $(BUILD_DIR)/$(TARGET)
+TARGET = a
+ELF_TARGET = $(BUILD_DIR)/$(TARGET).elf
+BIN_TARGET = $(BUILD_DIR)/$(TARGET).bin
 
 .PHONY: all clean
 
-all: $(OUT_TARGET)
+all: $(BIN_TARGET)
 
 # Collect all sources
 SRC_DIR = src
@@ -39,8 +40,11 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
 	clang++ -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
-$(OUT_TARGET): $(OBJECT_FILES)
+$(ELF_TARGET): $(OBJECT_FILES)
 	clang++ $(CPPFLAGS) -mthumb -T f411re.ld -fuse-ld=lld -o $@ $(OBJECT_FILES)
+
+$(BIN_TARGET): $(ELF_TARGET)
+	llvm-objcopy-13 -O binary $(ELF_TARGET) $(BIN_TARGET)
 
 clean:
 	rm -r $(BUILD_DIR)
