@@ -1,4 +1,5 @@
-_estack = 0x20010000;
+/* 128KB ram, stack is at top. */
+_estack = 0x20020000;
 
 ENTRY(reset_irq_handler)
 
@@ -10,17 +11,12 @@ MEMORY
 
 SECTIONS
 {
-	.vtable :
-	{ 
-		. = ALIGN(4);
-		KEEP (*(.vtable))
-		. = ALIGN(4);
-	} > FLASH
 	.text : 
 	{ 
+		KEEP (*(.vtable))
 		. = ALIGN(4);
-		*(.text) 
-		*(.text*) 
+		*(.text .text.*) 
+		*(.rodata .rodata.*) 
 		. = ALIGN(4);
 	} > FLASH
     .bss : 
