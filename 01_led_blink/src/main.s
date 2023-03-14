@@ -2,26 +2,24 @@
 .thumb
 .eabi_attribute Tag_ABI_align_preserved, 1
 
-
-.section .text, "ax", %progbits
-
-
 // Globally exported symbols
 .global main
 
+.section .text, "ax", %progbits
 
+// Initialize green user led on F411 Nucleo board.
 .thumb_func
 init_green_led:
-	// Enable GPIO_A Clock
+	// Enable GPIO_A peripheral clock.
 	LDR r4, =0x40023830
 	LDR r5, [r4]
 	ORR r5, #0x1
 	STR r5, [r4]
 
-	// Set GPIO_A5 as output
+	// Set GPIO_A5 into output mode.
 	LDR r4, =0x40020000
 	LDR r5, [r4]
-	ORR r5, #(0x1<<10)
+	ORR r5, #(0x01<<(2*5))
 	STR r5, [r4]
 
 	BX LR
@@ -31,7 +29,7 @@ init_green_led:
 green_led_off:
 	// Set GPIO_A5 disable bit
 	LDR r4, =0x40020018
-	MOV r5, #(0x1<<(5+16))
+	MOV r5, #(0x1<<(5+16)) // Upper 16bits are for resetting GPIOs.
 	STR r5, [r4]
 
 	BX LR

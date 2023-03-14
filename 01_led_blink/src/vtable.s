@@ -44,6 +44,7 @@ default_irq_handler:
 // Set by linker script
 .type _estack, %object
 
+// Setup stack and branch to main
 .thumb_func
 reset_irq_handler:
 	// Clean stack
