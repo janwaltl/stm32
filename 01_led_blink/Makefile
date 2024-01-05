@@ -1,14 +1,26 @@
-MCPU=cortex-m4
-MFPU=fpv4-sp-d16
-ARCH=armv7e-m
-FLASH_ADDR=0x08000000
+# TOOLCHAIN
+CC = clang-14
+CXX = clang++-14
+OBJCOPY = llvm-objcopy-14
 
-CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) --target=arm-none-eabi  
-CPPFLAGS += -Wall -Wextra -Werror -Wpedantic -Wconversion -nostdlib
-CPPFLAGS += -g3 -fpic
+# Target device
+MCPU = cortex-m4
+MFPU = fpv4-sp-d16
+ARCH = armv7e-m
+FLASH_ADDR = 0x08000000
+LINKER_SCRIPT = f411re.ld 
 
-CXXFLAGS = -std=c++20
+# Target-specific flags
+CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) --target=arm-none-eabi -nostdlib -fpic
+# Code quality
+CPPFLAGS += -Werror -Wall -Wextra -Wpedantic -Wconversion -Wformat=2
+CPPFLAGS += -g3
+
+# Language-specific flags
 CFLAGS = -std=c11
+CXXFLAGS = -std=c++20
+
+LDFLAGS = -mthumb -T $(LINKER_SCRIPT) -fuse-ld=lld
 
 AFLAGS =
 
@@ -17,7 +29,7 @@ TARGET = a
 ELF_TARGET = $(BUILD_DIR)/$(TARGET).elf
 BIN_TARGET = $(BUILD_DIR)/$(TARGET).bin
 
-.PHONY: all clean flash
+.PHONY: all clean flash format sca
 
 all: $(BIN_TARGET)
 
@@ -37,22 +49,26 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.s | $(BUILD_DIR)
-	clang -c $(CPPFLAGS) $(AFLAGS) -o $@ $<
+	$(CC) -c $(CPPFLAGS) $(AFLAGS) -o $@ $<
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	clang -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	clang++ -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
 $(ELF_TARGET): $(OBJECT_FILES)
-	clang++ $(CPPFLAGS) -mthumb -T f411re.ld -fuse-ld=lld -o $@ $(OBJECT_FILES)
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -o $@ $(OBJECT_FILES)
 
 $(BIN_TARGET): $(ELF_TARGET)
-	llvm-objcopy-13 -O binary $(ELF_TARGET) $(BIN_TARGET)
+	$(OBJCOPY) -O binary $(ELF_TARGET) $(BIN_TARGET)
 
 clean:
-	rm -r $(BUILD_DIR)
+	rm -rf $(BUILD_DIR)
+
+sca:
+	compiledb -n make
+	run-clang-tidy
 
 flash: $(BIN_TARGET)
 	st-flash write $(BIN_TARGET) $(FLASH_ADDR)

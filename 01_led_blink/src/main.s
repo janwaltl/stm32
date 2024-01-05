@@ -47,8 +47,8 @@ green_led_on:
 
 .thumb_func
 sleep_halfsec:
-	LDR r4, clock_halffreq
-	LSR r4, #2 		// 4 cycles per loop
+	LDR r4, =8000000 // 8MHz/16MHz = 0.5sec
+	LSR r4, #2 		// 4 cycles per loop, pipelined into 1 cycle/loop apparently.
 sleep_loop:
 	SUBS r4, #1 	// 1 Cycle
 	AND r5, r5  	// 1 Cycle
@@ -56,16 +56,11 @@ sleep_loop:
 	BX LR
 .size sleep_halfsec, . - sleep_halfsec
 
-
-.type clock_halftick, %object
-clock_halffreq:
-.word 8000000 // 16MHz clock after reset
-
 .thumb_func
 main:
 	BL init_green_led
 loop:
-	ADDS r0, r0, #1
+	ADDS r0, r0, #1 // Count loops in r0
 	BL green_led_on
 	BL sleep_halfsec
 	BL green_led_off
