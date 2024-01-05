@@ -4,13 +4,18 @@
 
 .global main
 
+// 1ms Ticks are stored in r8
+ticks .req r8
+
 .thumb_func
 sleep_halfsec:
+	//r1 = ticks+500
 	MOVW r1, #500
-	ADD r1, r8
+	ADD r1, ticks
 sleep_loop:
+	// Wait until r2 reaches r1 -> 500 ticks
 	WFI
-	MOV r0, r8
+	MOV r0, ticks
 	CMP r0, r1
 	BMI sleep_loop
 
