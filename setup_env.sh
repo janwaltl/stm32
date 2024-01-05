@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
 
-# Install LLVM 13
-sudo apt-get install llvm-13 llvm-13-tools lld-13 -y
+# Install LLVM 14
+sudo apt-get install llvm-14 llvm-14-tools lld-14 -y
 # Prerequisites
-sudo apt-get install build-essential cmake libusb-1.0 libusb-1.0-0-dev libgtk-3-dev pandoc -y
+sudo apt-get install build-essential cmake libusb-1.0 libusb-1.0-0-dev -y
 
 # Install OpenOCD
 git clone https://github.com/openocd-org/openocd
@@ -31,3 +31,6 @@ sudo udevadm trigger
 
 popd
 rm -rf stlink
+
+# Install compiledb for generatin compile_commands.json
+pip install compiledb
