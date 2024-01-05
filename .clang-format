@@ -1,0 +1,12 @@
+BasedOnStyle: LLVM
+IndentWidth : 4
+TabWidth: 4
+AlwaysBreakTemplateDeclarations : true
+AlignAfterOpenBracket : true
+AlignOperands : true
+AlignTrailingComments : true
+BreakConstructorInitializers : AfterColon
+AlwaysBreakAfterReturnType : All
+Language : Cpp
+SortIncludes : true
+IndentCaseLabels: false
