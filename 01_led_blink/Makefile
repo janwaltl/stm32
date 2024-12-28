@@ -1,7 +1,7 @@
 # TOOLCHAIN
 CC = clang-14
 CXX = clang++-14
-OBJCOPY = llvm-objcopy-14
+OBJCOPY = objcopy
 
 # Target device
 MCPU = cortex-m4
@@ -10,17 +10,21 @@ ARCH = armv7e-m
 FLASH_ADDR = 0x08000000
 LINKER_SCRIPT = f411re.ld 
 
+# Debug
+GDB_PORT = 3333
+
+
 # Target-specific flags
-CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) --target=arm-none-eabi -nostdlib -fpic
+CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) --target=arm-none-eabi -nostdlib
 # Code quality
 CPPFLAGS += -Werror -Wall -Wextra -Wpedantic -Wconversion -Wformat=2
 CPPFLAGS += -g3
 
 # Language-specific flags
 CFLAGS = -std=c11
-CXXFLAGS = -std=c++20
+CXXFLAGS = -std=c++20 -fno-exceptions -fno-rtti
 
-LDFLAGS = -mthumb -T $(LINKER_SCRIPT) -fuse-ld=lld
+LDFLAGS = -mthumb -fuse-ld=lld
 
 AFLAGS =
 
@@ -57,8 +61,8 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
-$(ELF_TARGET): $(OBJECT_FILES)
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) -o $@ $(OBJECT_FILES)
+$(ELF_TARGET): $(OBJECT_FILES) $(LINKER_SCRIPT)
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -T $(LINKER_SCRIPT) -o $@ $(OBJECT_FILES)
 
 $(BIN_TARGET): $(ELF_TARGET)
 	$(OBJCOPY) -O binary $(ELF_TARGET) $(BIN_TARGET)
@@ -71,4 +75,14 @@ sca:
 	run-clang-tidy
 
 flash: $(BIN_TARGET)
-	st-flash write $(BIN_TARGET) $(FLASH_ADDR)
+	[ "$(shell st-info --descr)" = "STM32F411xC_xE" ] || (echo "Invalid device" && false)
+	st-flash --opt --reset write $(BIN_TARGET) $(FLASH_ADDR)
+
+openocd:
+	openocd -f /usr/local/share/openocd/scripts/interface/stlink.cfg -f /usr/local/share/openocd/scripts/board/st_nucleo_f4.cfg
+
+gdb:
+	st-util -m -p $(GDB_PORT)
+
+debug: $(ELF_TARGET)
+	gdb-multiarch --eval-command="target extended-remote :$(GDB_PORT)" $(ELF_TARGET)
