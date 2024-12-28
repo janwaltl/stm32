@@ -12,6 +12,7 @@ LINKER_SCRIPT = f411re.ld
 
 # Debug
 GDB_PORT = 3333
+SVD_FILE = "../STM32F411.svd"
 
 
 # Target-specific flags
@@ -85,4 +86,4 @@ gdb:
 	st-util -m -p $(GDB_PORT)
 
 debug: $(ELF_TARGET)
-	gdb-multiarch --eval-command="target extended-remote :$(GDB_PORT)" $(ELF_TARGET)
+	gdb-multiarch --eval-command="target extended-remote :$(GDB_PORT)" --eval-command="svd_load $(SVD_FILE)" $(ELF_TARGET)

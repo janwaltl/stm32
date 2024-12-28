@@ -32,5 +32,16 @@ sudo udevadm trigger
 popd
 rm -rf stlink
 
-# Install compiledb for generatin compile_commands.json
+# Install compiledb for generating compile_commands.json
 pip install compiledb
+
+# Install SVD extension to GDB
+git clone https://github.com/bnahill/PyCortexMDebug.git
+
+pushd PyCortexMDebug
+sudo python setup.py install
+popd
+rm -rf PyCortexMDebug
+
+# Download SVD file for my board
+wget https://raw.githubusercontent.com/modm-io/cmsis-svd-stm32/refs/heads/main/stm32f4/STM32F411.svd
