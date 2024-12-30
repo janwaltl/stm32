@@ -20,12 +20,13 @@ CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) --target=arm-none-eabi -no
 # Code quality
 CPPFLAGS += -Werror -Wall -Wextra -Wpedantic -Wconversion -Wformat=2
 CPPFLAGS += -g3
+CPPFLAGS += -Os -flto
 
 # Language-specific flags
 CFLAGS = -std=c11
 CXXFLAGS = -std=c++20 -fno-exceptions -fno-rtti
 
-LDFLAGS = -mthumb -fuse-ld=lld
+LDFLAGS = -mthumb -fuse-ld=lld -flto
 
 AFLAGS =
 
