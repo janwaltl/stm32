@@ -23,7 +23,7 @@ CPPFLAGS += -g3
 
 # Language-specific flags
 CFLAGS = -std=c11
-CXXFLAGS = -std=c++20 -fno-exceptions -fno-rtti
+CXXFLAGS = -std=c++20 -fno-exceptions -fno-rtti -Wno-deprecated-volatile
 AFLAGS =
 
 # Linker-specific flags
