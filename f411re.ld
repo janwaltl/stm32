@@ -64,7 +64,7 @@ SECTIONS
 		. = ALIGN(4);
 		_bheap = ABSOLUTE(.);
 
-		. = _bstack;
+		. = ABSOLUTE(_bstack);
 		_eheap = ABSOLUTE(.);
 		_heap_size = _eheap - _bheap; 
 		ASSERT(_heap_size>= _heap_min_size, "Not enough space for heap");
@@ -72,8 +72,8 @@ SECTIONS
 
 	.stack (NOLOAD) :
 	{
-		. = _bstack;
-		. = _estack;
+		. = ABSOLUTE(_bstack);
+		. = ABSOLUTE(_estack);
 	} > RAM
 }
 

@@ -4,7 +4,7 @@
 #include "nucleof411re.h"
 
 // TICK = 1ms
-const static size_t c_ticks_per_sec = 16000; // 16MHz clock after reset
+static const size_t c_ticks_per_sec = 16000; // 16MHz clock after reset
 
 volatile size_t g_tick_counter = 0; // NOLINT
 

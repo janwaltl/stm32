@@ -1,7 +1,7 @@
 # TOOLCHAIN
-CC = clang-14
-CXX = clang++-14
-OBJCOPY = objcopy
+CC = arm-none-eabi-gcc
+CXX = arm-none-eabi-g++
+OBJCOPY = arm-none-eabi-objcopy
 
 # Target device
 MCPU = cortex-m4
@@ -14,26 +14,30 @@ LINKER_SCRIPT = f411re.ld
 GDB_PORT = 3333
 SVD_FILE = "../STM32F411.svd"
 
+# Compiler, linker flags
+CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) -nostdlib
 
-# Target-specific flags
-CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) --target=arm-none-eabi -nostdlib
 # Code quality
 CPPFLAGS += -Werror -Wall -Wextra -Wpedantic -Wconversion -Wformat=2
 CPPFLAGS += -g3
-CPPFLAGS += -Os -flto
 
 # Language-specific flags
 CFLAGS = -std=c11
 CXXFLAGS = -std=c++20 -fno-exceptions -fno-rtti
-
-LDFLAGS = -mthumb -fuse-ld=lld -flto
-
 AFLAGS =
+
+# Linker-specific flags
+LDFLAGS = -mthumb
+
+# Optimization
+CPPFLAGS += -Os -flto
+LDFLAGS += -flto
 
 BUILD_DIR = build
 TARGET = a
 ELF_TARGET = $(BUILD_DIR)/$(TARGET).elf
 BIN_TARGET = $(BUILD_DIR)/$(TARGET).bin
+MAP_TARGET = $(BUILD_DIR)/$(TARGET).map
 
 .PHONY: all clean flash format sca
 
@@ -64,7 +68,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
 $(ELF_TARGET): $(OBJECT_FILES) $(LINKER_SCRIPT)
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) -T $(LINKER_SCRIPT) -o $@ $(OBJECT_FILES)
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -T $(LINKER_SCRIPT) -o $@ -Wl,-Map=$(MAP_TARGET) $(OBJECT_FILES)
 
 $(BIN_TARGET): $(ELF_TARGET)
 	$(OBJCOPY) -O binary $(ELF_TARGET) $(BIN_TARGET)

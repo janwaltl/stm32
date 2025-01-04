@@ -20,9 +20,9 @@ main(void) {
         buffer[n] = '\0';
 
         serial_send_str("Received ");
-        char ddd = '0' + ((n / 100) % 10);
-        char dd = '0' + ((n / 10) % 10);
-        char d = '0' + (n % 10);
+        char ddd = '0' + (char)((n / 100) % 10);
+        char dd = '0' + (char)((n / 10) % 10);
+        char d = '0' + (char)(n % 10);
         serial_send_char(ddd);
         serial_send_char(dd);
         serial_send_char(d);

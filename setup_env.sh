@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 
-# Install LLVM 14
-sudo apt-get install llvm-14 llvm-14-tools lld-14 -y
+# Install gcc for ARM Cortex-M processors (STM32)
+sudo apt-get install gcc-arm-none-eabi
 # Prerequisites
 sudo apt-get install build-essential cmake libusb-1.0 libusb-1.0-0-dev -y
 
