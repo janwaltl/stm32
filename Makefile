@@ -54,6 +54,9 @@ SOURCES = $(A_SOURCES) $(C_SOURCES) $(CPP_SOURCES)
 # List of object files in the build folder
 SOURCES_BASE = $(basename $(SOURCES))
 OBJECT_FILES = $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%, $(addsuffix  .o, $(SOURCES_BASE)))
+HEADER_DEPS = $(OBJECT_FILES:%.o=%.d)
+
+-include $(HEADER_DEPS)
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -62,10 +65,10 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.s | $(BUILD_DIR)
 	$(CC) -c $(CPPFLAGS) $(AFLAGS) -o $@ $<
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+	$(CC) -c $(CPPFLAGS) $(CFLAGS) -MMD -o $@ $<
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -MMD -o $@ $<
 
 $(ELF_TARGET): $(OBJECT_FILES) $(LINKER_SCRIPT)
 	$(CXX) $(CPPFLAGS) $(LDFLAGS) -T $(LINKER_SCRIPT) -o $@ -Wl,-Map=$(MAP_TARGET) $(OBJECT_FILES)
