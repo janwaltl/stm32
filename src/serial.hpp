@@ -1,7 +1,7 @@
-#include <stddef.h>
+#include <cstddef>
 
 void
-init_serial(void);
+init_serial();
 
 void
 serial_send_char(char c);

@@ -1,10 +1,10 @@
 #ifndef LED_HEADER
 #define LED_HEADER
 
-#include <stdbool.h>
+#include <cstdbool>
 
 void
-init_led(void);
+init_led();
 
 void
 switch_led(bool on);

@@ -1,11 +1,12 @@
-#include <stddef.h>
-#include <stdint.h>
+#include "led.hpp"
 
-#include "led.h"
-#include "nucleof411re.h"
+#include <cstddef>
+#include <cstdint>
+
+#include "nucleof411re.hpp"
 
 void
-init_led(void) {
+init_led() {
     // Enable GPIO_A peripheral clock.
     NUCLEO_RCC->ahb1enr |= 0x1;
     // Set GPIO A5 into output mode.

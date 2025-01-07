@@ -3,16 +3,12 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
 #define R_I_ volatile
-#else
-#define R_I_ volatile const
-#endif
 #define R__O volatile
 #define R_IO volatile
 #define R___ volatile
 
-typedef struct {
+struct GPIO {
     R_IO uint32_t moder;
     R_IO uint32_t otyper;
     R_IO uint32_t ospeedr;
@@ -25,9 +21,9 @@ typedef struct {
     R_IO uint32_t lckr;
     R_IO uint32_t afrl;
     R_IO uint32_t afrh;
-} GPIO;
+};
 
-typedef struct {
+struct RCC {
     R_IO uint32_t cr;
     R_IO uint32_t pllcfgr;
     R_IO uint32_t cfgr;
@@ -64,16 +60,16 @@ typedef struct {
     R_IO uint32_t plli2scfgr;
     R___ uint32_t reserved14;
     R_IO uint32_t dckcfgr;
-} RCC;
+};
 
-typedef struct {
+struct SysTickSTK {
     R_IO uint32_t ctrl;
     R_IO uint32_t load;
     R_IO uint32_t val;
     R_IO uint32_t calib;
-} SysTickSTK;
+};
 
-typedef struct {
+struct USART {
     R_IO uint32_t sr;
     R_IO uint32_t dr;
     R_IO uint32_t brr;
@@ -81,7 +77,7 @@ typedef struct {
     R_IO uint32_t cr2;
     R_IO uint32_t cr3;
     R_IO uint32_t gtpr;
-} USART;
+};
 
 #define APB1PERIPH_BASE (0x40000000UL)
 #define AHB1PERIPH_BASE (0x40020000UL)
@@ -95,14 +91,15 @@ typedef struct {
 #define SYSTICK_STK_BASE (STM32_M4_BASE + 0x10UL)
 
 // NOLINTNEXTLINE
-static USART *const NUCLEO_USART2 = (USART *)(USART2_BASE);
+static volatile USART *const NUCLEO_USART2 = (USART *)(USART2_BASE);
 
 // NOLINTNEXTLINE
-static GPIO *const NUCLEO_GPIOA = (GPIO *)(GPIOA_BASE);
+static volatile GPIO *const NUCLEO_GPIOA = (GPIO *)(GPIOA_BASE);
 // NOLINTNEXTLINE
-static RCC *const NUCLEO_RCC = (RCC *)(RCC_BASE);
+static volatile RCC *const NUCLEO_RCC = (RCC *)(RCC_BASE);
 
 // NOLINTNEXTLINE
-static SysTickSTK *const NUCLEO_SYSTICK = (SysTickSTK *)(SYSTICK_STK_BASE);
+static volatile SysTickSTK *const NUCLEO_SYSTICK =
+    reinterpret_cast<SysTickSTK *>(SYSTICK_STK_BASE); // NOLINT
 
 #endif /* ifndef NUCLEOF411RE_HEADER */

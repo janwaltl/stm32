@@ -1,15 +1,18 @@
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
-#include "nucleof411re.h"
-
-// TICK = 1ms
-static const size_t c_ticks_per_sec = 16000; // 16MHz clock after reset
+#include "nucleof411re.hpp"
+#include "systick.hpp"
 
 volatile size_t g_tick_counter = 0; // NOLINT
 
+namespace {
+// TICK = 1ms
+constexpr size_t c_ticks_per_sec = 16000; // 16MHz clock after reset
+} // namespace
+
 void
-init_systick(void) {
+init_systick() {
     // As per datasheet to get interrupt every N cycles, set it to N-1.
     uint32_t load_value = c_ticks_per_sec - 1;
 
@@ -25,7 +28,7 @@ init_systick(void) {
     NUCLEO_SYSTICK->ctrl = 0x7;
 }
 
-void
+extern "C" void
 systick_irq_handler(void) {
     g_tick_counter = g_tick_counter + 1;
 }

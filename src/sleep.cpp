@@ -1,5 +1,6 @@
-#include "sleep.h"
-#include "systick.h"
+#include "sleep.hpp"
+
+#include "systick.hpp"
 
 void
 sleep_ms(size_t count) {

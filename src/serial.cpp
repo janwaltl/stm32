@@ -1,12 +1,30 @@
-#include "serial.h"
+#include "serial.hpp"
 
-#include <stdbool.h>
+#include "led.hpp"
+#include "nucleof411re.hpp"
 
-#include "led.h"
-#include "nucleof411re.h"
+namespace {
+bool
+rx_empty(uint32_t status_reg) {
+    return (status_reg & (1 << 5)) == 0;
+}
+bool
+rx_idle(uint32_t status_reg) {
+    return (status_reg & (1 << 4)) != 0;
+}
+
+bool
+tx_empty(uint32_t status_reg) {
+    return (status_reg & (1 << 7)) != 0;
+}
+bool
+tx_complete(uint32_t status_reg) {
+    return (status_reg & (1 << 6)) != 0;
+}
+} // namespace
 
 void
-init_serial(void) {
+init_serial() {
     // Enable USART2 peripheral clock.
     NUCLEO_RCC->apb1enr |= 1U << 17;
     // Enable GPIO_A peripheral clock.
@@ -31,24 +49,6 @@ init_serial(void) {
     NUCLEO_USART2->cr2 = 0;
     // Disable extensions
     NUCLEO_USART2->cr3 = 0;
-}
-
-static bool
-rx_empty(uint32_t status_reg) {
-    return (status_reg & (1 << 5)) == 0;
-}
-static bool
-rx_idle(uint32_t status_reg) {
-    return (status_reg & (1 << 4)) != 0;
-}
-
-static bool
-tx_empty(uint32_t status_reg) {
-    return (status_reg & (1 << 7)) != 0;
-}
-static bool
-tx_complete(uint32_t status_reg) {
-    return (status_reg & (1 << 6)) != 0;
 }
 
 void
@@ -98,7 +98,7 @@ serial_receive(char *dst, size_t n) {
     while (i < n && (i == 0 || !rx_empty(status) || !rx_idle(status))) {
 
         if (!rx_empty(status)) {
-            dst[i++] = (uint8_t)(NUCLEO_USART2->dr & 0xFF);
+            dst[i++] = static_cast<uint8_t>(NUCLEO_USART2->dr & 0xFF);
         }
         status = NUCLEO_USART2->sr;
     }
