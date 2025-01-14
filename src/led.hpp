@@ -1,8 +1,6 @@
 #ifndef LED_HEADER
 #define LED_HEADER
 
-#include <cstdbool>
-
 void
 init_led();
 
