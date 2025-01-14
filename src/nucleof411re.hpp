@@ -112,6 +112,11 @@ struct NVIC {
 #define SYSTICK_STK_BASE (STM32_M4_BASE + 0x10UL)
 #define NVIC_BASE (STM32_M4_BASE + 0x100UL)
 
+inline void
+wait_for_interrupt() {
+    __asm__ __volatile__("wfi\n\t");
+}
+
 // NOLINTNEXTLINE
 static volatile USART *const NUCLEO_USART2 = (USART *)(USART2_BASE);
 
