@@ -1,8 +1,5 @@
 #include "serial.hpp"
 
-#include "led.hpp"
-#include "nucleof411re.hpp"
-
 namespace {
 bool
 rx_empty(uint32_t status_reg) {
@@ -21,90 +18,133 @@ bool
 tx_complete(uint32_t status_reg) {
     return (status_reg & (1 << 6)) != 0;
 }
+
+inline SerialDev::StatusFlags
+operator|(SerialDev::StatusFlags a, SerialDev::StatusFlags b) {
+    using T = std::underlying_type_t<SerialDev::StatusFlags>;
+    return static_cast<SerialDev::StatusFlags>(static_cast<T>(a) |
+                                               static_cast<T>(b));
+}
+inline SerialDev::StatusFlags
+operator&(SerialDev::StatusFlags a, SerialDev::StatusFlags b) {
+    using T = std::underlying_type_t<SerialDev::StatusFlags>;
+    return static_cast<SerialDev::StatusFlags>(static_cast<T>(a) &
+                                               static_cast<T>(b));
+}
+inline SerialDev::StatusFlags
+operator~(SerialDev::StatusFlags a) {
+    using T = std::underlying_type_t<SerialDev::StatusFlags>;
+    return static_cast<SerialDev::StatusFlags>(~static_cast<T>(a));
+}
+inline SerialDev::StatusFlags &
+operator|=(SerialDev::StatusFlags &a, SerialDev::StatusFlags b) {
+    return a = a | b;
+}
+inline SerialDev::StatusFlags &
+operator&=(SerialDev::StatusFlags &a, SerialDev::StatusFlags b) {
+    return a = a & b;
+}
+
 } // namespace
 
-void
-init_serial() {
-    // Enable USART2 peripheral clock.
-    NUCLEO_RCC->apb1enr |= 1U << 17;
-    // Enable GPIO_A peripheral clock.
-    NUCLEO_RCC->ahb1enr |= 0x1;
-
-    // Set GPIO_A 2,3 alternative function
-    NUCLEO_GPIOA->moder |= 0x2 << (2 * 2);
-    NUCLEO_GPIOA->moder |= 0x2 << (2 * 3);
-    // Select UART as alternative function
-    NUCLEO_GPIOA->afrl |= 0x7 << (4 * 2);
-    NUCLEO_GPIOA->afrl |= 0x7 << (4 * 3);
-
-    // Setup USART2 baudrate
+SerialDev::SerialDev(volatile USART *periph) : m_usart(periph) {
+    // Setup baudrate
     // 104.166666
     // 104=0x67
     // .16 << 4 = 2.56 ~ 3 = 0x3
-    NUCLEO_USART2->brr = 0x683;
+    m_usart->brr = 0x683;
     // Enable UART, disable all interrupts, parity...
-    NUCLEO_USART2->cr1 = (0x1 << 13);
+    m_usart->cr1 = (0x1 << 13);
 
     // Set 1 stop bits, disable the rest
-    NUCLEO_USART2->cr2 = 0;
+    m_usart->cr2 = 0;
     // Disable extensions
-    NUCLEO_USART2->cr3 = 0;
+    m_usart->cr3 = 0;
+
+    // Enable RXNEIE,IDLEIE interrupt
+    m_usart->cr1 |= (11 << 4);
+
+    // Enable RX,TX
+    m_usart->cr1 |= (11 << 2);
 }
 
 void
-serial_send_str(const char *msg) {
-    // Enable TX
-    NUCLEO_USART2->cr1 |= (1 << 3);
-    switch_led(true);
-    while (*msg) {
-        while (!tx_empty(NUCLEO_USART2->sr))
-            ;
-
-        // Send Data
-        NUCLEO_USART2->dr = *msg++;
+SerialDev::irq_handler() {
+    auto status = m_usart->sr;
+    auto status_flags = m_status_flags.load();
+    // Handle sending
+    if (tx_empty(status)) {
+        if (!m_tx.is_empty()) {
+            // Send the next byte
+            m_usart->dr = m_tx.pop_front();
+        } else if (tx_complete(status)) {
+            // Disable TXEIE, TCIE
+            m_usart->cr1 &= ~(0b11U << 6);
+        }
     }
-    while (!tx_complete(NUCLEO_USART2->sr))
-        ;
-    switch_led(false);
-    // Disable TX
-    NUCLEO_USART2->cr1 &= ~(1U << 3);
+    // Handle receiving
+    if (!rx_empty(status)) {
+        auto b = static_cast<unsigned char>(m_usart->dr & 0xFF);
+        if (!m_rx.is_full()) {
+            m_rx.push_back(b);
+        } else {
+            status_flags |= StatusFlags::Overrun;
+        }
+    }
+
+    if (rx_idle(status) && rx_empty(status)) {
+        status_flags |= StatusFlags::IdleLine;
+        // Disable IDLEIE
+        m_usart->cr1 &= ~(0b1U << 4);
+    } else {
+        status_flags &= ~StatusFlags::IdleLine;
+        // Watch for IDLE flag
+        m_usart->cr1 |= 0b1U << 4;
+    }
+
+    if (status & (1 << 3)) {
+        status_flags |= StatusFlags::Overrun;
+    }
+
+    m_status_flags.store(status_flags);
 }
 
 void
-serial_send_char(char c) {
-    // Enable TX
-    NUCLEO_USART2->cr1 |= (1 << 3);
-    switch_led(true);
-    while (!tx_empty(NUCLEO_USART2->sr))
-        ;
-    // Send Data
-    NUCLEO_USART2->dr = c;
-    while (!tx_complete(NUCLEO_USART2->sr))
-        ;
-    switch_led(false);
-    // Disable TX
-    NUCLEO_USART2->cr1 &= ~(1U << 3);
+SerialDev::send(const char *msg) {
+    while (m_tx.is_full())
+        wait_for_interrupt();
+    // Push first char, then enable interrupts, then push the rest
+    if (*msg) {
+        m_tx.push_back(*msg++);
+        // Enable TXEIE, TCIE
+        m_usart->cr1 |= (0b11 << 6);
+    }
+    while (*msg) {
+        while (m_tx.is_full())
+            wait_for_interrupt();
+        m_tx.push_back(*msg++);
+    }
+}
+
+void
+SerialDev::send(char c) {
+    send(std::array{c, '\0'}.data());
 }
 
 size_t
-serial_receive(char *dst, size_t n) {
+SerialDev::recv(char *dst, size_t n) {
     size_t i = 0;
 
-    // Enable RX
-    NUCLEO_USART2->cr1 |= (1 << 2);
-    switch_led(true);
+    // Wait for at least one byte, after that exit early if line becomes idle.
+    while (i < n && (i == 0 || !m_rx.is_empty() ||
+                     (m_status_flags.load() & StatusFlags::IdleLine) ==
+                         StatusFlags::None)) {
 
-    uint32_t status = NUCLEO_USART2->sr;
-    while (i < n && (i == 0 || !rx_empty(status) || !rx_idle(status))) {
-
-        if (!rx_empty(status)) {
-            dst[i++] = static_cast<uint8_t>(NUCLEO_USART2->dr & 0xFF);
+        if (!m_rx.is_empty()) {
+            dst[i++] = m_rx.pop_front();
+        } else {
+            wait_for_interrupt();
         }
-        status = NUCLEO_USART2->sr;
     }
-
-    switch_led(false);
-    // Disable RX
-    NUCLEO_USART2->cr1 &= ~(1U << 2);
     return i;
 }

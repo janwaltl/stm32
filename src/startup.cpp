@@ -17,8 +17,11 @@ extern int
 notmain();
 
 extern "C" {
-DEFAULT void
+void DEFAULT
 systick_irq_handler(void);
+
+void DEFAULT
+usart2_irq_handler(void);
 }
 
 static void
@@ -138,7 +141,7 @@ const irq_t reset_table[101] = {
     &default_irq_handler,              // IRQ 35
     &default_irq_handler,              // IRQ 36
     &default_irq_handler,              // IRQ 37
-    &default_irq_handler,              // IRQ 38
+    &usart2_irq_handler,               // IRQ 38
     &default_irq_handler,              // IRQ 39
     &default_irq_handler,              // IRQ 40
     &default_irq_handler,              // IRQ 41
