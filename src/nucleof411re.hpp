@@ -1,7 +1,8 @@
-#ifndef NUCLEOF411RE_HEADER
-#define NUCLEOF411RE_HEADER
+#pragma once
 
-#include <stdint.h>
+#include <array>
+#include <cstddef>
+#include <cstdint>
 
 #define R_I_ volatile
 #define R__O volatile
@@ -79,6 +80,26 @@ struct USART {
     R_IO uint32_t gtpr;
 };
 
+enum class IRQn : std::size_t {
+    USART2 = 38,
+};
+
+struct NVIC {
+    std::array<R_IO uint32_t, 8> iser;
+    std::array<unsigned char, 0x60> reserved2;
+    std::array<R_IO uint32_t, 8> icer;
+    std::array<unsigned char, 0x60> reserved3;
+    std::array<R_IO uint32_t, 8> ispr;
+    std::array<unsigned char, 0x60> reserved4;
+    std::array<R_IO uint32_t, 8> icpr;
+    std::array<unsigned char, 0x60> reserved5;
+    std::array<R_IO uint32_t, 8> iabr;
+    std::array<unsigned char, 0xE0> reserved6;
+    std::array<R_IO uint32_t, 60> ipr;
+    std::array<unsigned char, 0x910> reserved7;
+    R_IO uint32_t stir;
+};
+
 #define APB1PERIPH_BASE (0x40000000UL)
 #define AHB1PERIPH_BASE (0x40020000UL)
 #define STM32_M4_BASE (0xE000E000UL)
@@ -89,6 +110,7 @@ struct USART {
 #define RCC_BASE (AHB1PERIPH_BASE + 0x3800UL)
 
 #define SYSTICK_STK_BASE (STM32_M4_BASE + 0x10UL)
+#define NVIC_BASE (STM32_M4_BASE + 0x100UL)
 
 // NOLINTNEXTLINE
 static volatile USART *const NUCLEO_USART2 = (USART *)(USART2_BASE);
@@ -102,4 +124,5 @@ static volatile RCC *const NUCLEO_RCC = (RCC *)(RCC_BASE);
 static volatile SysTickSTK *const NUCLEO_SYSTICK =
     reinterpret_cast<SysTickSTK *>(SYSTICK_STK_BASE); // NOLINT
 
-#endif /* ifndef NUCLEOF411RE_HEADER */
+// NOLINTNEXTLINE
+static NVIC *const NUCLEO_NVIC = reinterpret_cast<NVIC *>(NVIC_BASE); // NOLINT
