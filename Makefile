@@ -12,7 +12,7 @@ LINKER_SCRIPT = f411re.ld
 
 # Debug
 GDB_PORT = 3333
-SVD_FILE = "../STM32F411.svd"
+SVD_FILE = "./STM32F411.svd"
 
 # Compiler, linker flags
 CPPFLAGS = -mcpu=$(MCPU) -mfpu=$(MFPU) -march=$(ARCH) -nostdlib
