@@ -63,6 +63,11 @@ struct RCC {
     R_IO uint32_t dckcfgr;
 };
 
+struct PWR {
+    R_IO uint32_t cr;
+    R_IO uint32_t csr;
+};
+
 struct SysTickSTK {
     R_IO uint32_t ctrl;
     R_IO uint32_t load;
@@ -100,14 +105,25 @@ struct NVIC {
     R_IO uint32_t stir;
 };
 
+struct FLASH {
+    R_IO uint32_t acr;
+    R_IO uint32_t keyr;
+    R_IO uint32_t optkeyr;
+    R_IO uint32_t sr;
+    R_IO uint32_t cr;
+    R_IO uint32_t optcr;
+};
+
 #define APB1PERIPH_BASE (0x40000000UL)
 #define AHB1PERIPH_BASE (0x40020000UL)
 #define STM32_M4_BASE (0xE000E000UL)
 
 #define USART2_BASE (APB1PERIPH_BASE + 0x4400UL)
+#define PWR_BASE (APB1PERIPH_BASE + 0x7000UL)
 
 #define GPIOA_BASE (AHB1PERIPH_BASE + 0x0000UL)
 #define RCC_BASE (AHB1PERIPH_BASE + 0x3800UL)
+#define FLASH_BASE (AHB1PERIPH_BASE + 0x3C00UL)
 
 #define SYSTICK_STK_BASE (STM32_M4_BASE + 0x10UL)
 #define NVIC_BASE (STM32_M4_BASE + 0x100UL)
@@ -119,11 +135,15 @@ wait_for_interrupt() {
 
 // NOLINTNEXTLINE
 static volatile USART *const NUCLEO_USART2 = (USART *)(USART2_BASE);
+// NOLINTNEXTLINE
+static volatile PWR *const NUCLEO_PWR = (PWR *)(PWR_BASE);
 
 // NOLINTNEXTLINE
 static volatile GPIO *const NUCLEO_GPIOA = (GPIO *)(GPIOA_BASE);
 // NOLINTNEXTLINE
 static volatile RCC *const NUCLEO_RCC = (RCC *)(RCC_BASE);
+// NOLINTNEXTLINE
+static volatile FLASH *const NUCLEO_FLASH = (FLASH *)(FLASH_BASE);
 
 // NOLINTNEXTLINE
 static volatile SysTickSTK *const NUCLEO_SYSTICK =

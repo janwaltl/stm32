@@ -52,7 +52,9 @@ SerialDev::SerialDev(volatile USART *periph) : m_usart(periph) {
     // 104.166666
     // 104=0x67
     // .16 << 4 = 2.56 ~ 3 = 0x3
-    m_usart->brr = 0x683;
+
+    m_usart->brr = 0xA2C;
+
     // Enable UART, disable all interrupts, parity...
     m_usart->cr1 = (0x1 << 13);
 

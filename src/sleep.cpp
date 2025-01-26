@@ -1,11 +1,11 @@
 #include "sleep.hpp"
 
-#include "systick.hpp"
+#include "systime.hpp"
 
 void
-sleep_ms(size_t count) {
-    size_t ticks = g_tick_counter + count;
+sleep_ms(std::chrono::milliseconds count) {
+    auto ticks = get_systime() + count;
 
-    while (g_tick_counter < ticks)
+    while (get_systime() < ticks)
         ;
 }

@@ -2,7 +2,8 @@
 #include "my_assert.hpp"
 #include "nvic.hpp"
 #include "serial.hpp"
-#include "systick.hpp"
+#include "sleep.hpp"
+#include "systime.hpp"
 
 namespace {
 // NOLINTNEXTLINE
@@ -23,6 +24,11 @@ init_usart2() {
     // Select UART as alternative function
     NUCLEO_GPIOA->afrl |= 0x7 << (4 * 2);
     NUCLEO_GPIOA->afrl |= 0x7 << (4 * 3);
+    // Set to hispeed
+    NUCLEO_GPIOA->ospeedr |= 0x3 << (2 * 2);
+    NUCLEO_GPIOA->ospeedr |= 0x3 << (2 * 3);
+
+    *(volatile uint32_t *)(0x40013800 + 0x20) |= 1;
 }
 
 void
@@ -57,9 +63,17 @@ usart2_irq_handler(void) {
 
 int
 notmain() {
-    init_systick();
+    init_sysclock();
     init_led();
     init_usart2();
+
+    while (false) {
+        using namespace std::chrono_literals;
+        sleep_ms(500ms);
+        switch_led(true);
+        sleep_ms(500ms);
+        switch_led(false);
+    }
 
     SerialDev serial{NUCLEO_USART2};
     g_serial = &serial;
@@ -73,3 +87,13 @@ notmain() {
 
     return 0;
 }
+
+// TODO
+//  1. Switch to 100MHz clock, proper clock system, including systick
+//  - set PLLM to 8 -> 2MHz clock input
+//  - set PLLN to 100 -> 200MHz VCO
+//  - set PLLP to 2 -> 100MHz clock output
+//  - switch system clock source to PLL
+//  1. Switch to 115200 baud rate
+//  1. Proper boot phase of the board, which initializes serial console.
+//  1. printk, logging behaviour.
