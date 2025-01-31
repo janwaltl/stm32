@@ -32,11 +32,12 @@ init_usart2() {
 }
 void
 init_clock_reporting() {
-    // Set MCO2 to output sysclock clock/4
+    // Set MCO2 to output sysclock clock/5
     NUCLEO_RCC->cfgr &= ~(0b11111U << 27);
     NUCLEO_RCC->cfgr |= 0b11U << 30;
     NUCLEO_RCC->cfgr |= 0b111 << 27;
 
+    // Set MCO to output sysclock clock/5
     NUCLEO_RCC->cfgr &= ~(0b11U << 21);
     NUCLEO_RCC->cfgr |= 0b00 << 21;
     NUCLEO_RCC->cfgr |= 0b111 << 24;
@@ -49,7 +50,6 @@ init_clock_reporting() {
     // Select MCO as alternative function
     NUCLEO_GPIOC->afrh |= 0x0 << (4 * (9 - 8));
 
-    // Set MCO to output HSI clock/4
     // Enable GPIO_A peripheral clock.
     NUCLEO_RCC->ahb1enr |= 0x1 << 0;
     //  Set GPIO_A 8 alternative function
