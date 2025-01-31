@@ -30,6 +30,34 @@ init_usart2() {
 
     *(volatile uint32_t *)(0x40013800 + 0x20) |= 1;
 }
+void
+init_clock_reporting() {
+    // Set MCO2 to output sysclock clock/4
+    NUCLEO_RCC->cfgr &= ~(0b11111U << 27);
+    NUCLEO_RCC->cfgr |= 0b00 << 30;
+    NUCLEO_RCC->cfgr |= 0b110 << 27;
+
+    NUCLEO_RCC->cfgr &= ~(0b11U << 21);
+    NUCLEO_RCC->cfgr |= 0b00 << 21;
+    NUCLEO_RCC->cfgr |= 0b110 << 24;
+
+    // Enable GPIO_C peripheral clock.
+    NUCLEO_RCC->ahb1enr |= 0x1 << 2;
+    //  Set GPIO_C 9 alternative function
+    NUCLEO_GPIOC->moder |= 0x2 << (2 * 9);
+    NUCLEO_GPIOC->ospeedr |= 0x3 << (2 * 9);
+    // Select MCO as alternative function
+    NUCLEO_GPIOC->afrh |= 0x0 << (4 * (9 - 8));
+
+    // Set MCO to output HSI clock/4
+    // Enable GPIO_A peripheral clock.
+    NUCLEO_RCC->ahb1enr |= 0x1 << 0;
+    //  Set GPIO_A 8 alternative function
+    NUCLEO_GPIOA->moder |= 0x2 << (2 * 8);
+    NUCLEO_GPIOA->ospeedr |= 0x3 << (2 * 8);
+    // Select MCO as alternative function
+    NUCLEO_GPIOA->afrh |= 0x0 << (4 * (8 - 8));
+}
 
 void
 echo(SerialDev &serial) {
@@ -63,6 +91,7 @@ usart2_irq_handler(void) {
 
 int
 notmain() {
+    init_clock_reporting();
     init_sysclock();
     init_led();
     init_usart2();
