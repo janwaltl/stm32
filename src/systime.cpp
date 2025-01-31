@@ -37,9 +37,10 @@ init_pll() {
     // HSI is 16MHz, PLL clock input must be <=2MHZ
     // We want 100MHz clock
 
-    NUCLEO_RCC->pllcfgr |= 8U << 0;   // PLLM=8
-    NUCLEO_RCC->pllcfgr |= 100U << 6; // PLLN=100
-    NUCLEO_RCC->pllcfgr |= 0U << 16;  // PLLP=2 by setting the bits to 0
+    NUCLEO_RCC->pllcfgr &= ~(0x3FFFFU); // Zero the reset values
+    NUCLEO_RCC->pllcfgr |= 8U << 0;     // PLLM=8
+    NUCLEO_RCC->pllcfgr |= 100U << 6;   // PLLN=100
+    NUCLEO_RCC->pllcfgr |= 0U << 16;    // PLLP=2 by setting the bits to 0
 
     // Set prescalers before setting the clock, temporarily makes them slower.
     // Otherwise they could briefly exceed the maximum limit.
@@ -48,7 +49,7 @@ init_pll() {
     NUCLEO_RCC->cfgr &= ~(0xFU << 4);
     // Set APB1 to AHB/2 clock speed = 50Mhz
     NUCLEO_RCC->cfgr &= ~(0x7U << 10);
-    NUCLEO_RCC->cfgr |= 0x5 << 10;
+    NUCLEO_RCC->cfgr |= 0x4 << 10;
     // Set APB2 to AHB clock speed = 100MHz
     NUCLEO_RCC->cfgr &= ~(0x7U << 13);
 

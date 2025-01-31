@@ -49,11 +49,11 @@ operator&=(SerialDev::StatusFlags &a, SerialDev::StatusFlags b) {
 
 SerialDev::SerialDev(volatile USART *periph) : m_usart(periph) {
     // Setup baudrate
-    // 104.166666
-    // 104=0x67
-    // .16 << 4 = 2.56 ~ 3 = 0x3
-
-    m_usart->brr = 0xA2C;
+    // brr = clock / (16*baud rate)
+    // brr = 50MHz / (16*115200) = 27,1267...
+    // 27 = 0x1B
+    // .1267 << 4 = 2.027 ~ 2 = 0x2
+    m_usart->brr = 0x1B2;
 
     // Enable UART, disable all interrupts, parity...
     m_usart->cr1 = (0x1 << 13);
